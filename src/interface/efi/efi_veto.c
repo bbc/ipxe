@@ -494,12 +494,37 @@ efi_veto_vmware_uefipxebc ( EFI_DRIVER_BINDING_PROTOCOL *binding __unused,
 	return 1;
 }
 
+static int
+efi_veto_intel_82599 ( EFI_DRIVER_BINDING_PROTOCOL *binding __unused,
+                           EFI_LOADED_IMAGE_PROTOCOL *loaded __unused,
+                           EFI_COMPONENT_NAME_PROTOCOL *wtf __unused,
+                           const char *manufacturer, const CHAR16 *name ) {
+       static const CHAR16 intel82599[] = L"Intel(R) 10GbE Driver 8.2.31 x64";
+       static const char *intel = "Supermicro";
+
+       /* Check manufacturer and driver name */
+       if ( ! manufacturer )
+               return 0;
+       if ( ! name )
+               return 0;
+       if ( strcmp ( manufacturer, intel ) != 0 )
+               return 0;
+       if ( memcmp ( name, intel82599, sizeof ( intel82599 ) ) != 0 )
+               return 0;
+
+       return 1;
+}
+
 /** Driver vetoes */
 static struct efi_veto_candidate efi_vetoes[] = {
 	{
 		.name = "Ip4Config",
 		.veto = efi_veto_ip4config,
 	},
+        {
+                .name = "Intel 82599-sfp",
+                .veto = efi_veto_intel_82599,
+        },
 	{
 		.name = "HP Xhci",
 		.veto = efi_veto_hp_xhci,
